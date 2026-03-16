@@ -13,6 +13,7 @@ load_dotenv()
 app = FastAPI(title="Pinecone Integrated API")
 
 PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = "integrated-disal"
 
 if not PINECONE_API_KEY:
     raise ValueError("PINECONE_API_KEY not found in environment variables. Please check your .env file.")
@@ -23,7 +24,7 @@ pc = Pinecone(api_key=PINECONE_API_KEY)
 
 @app.post("/ingest-pdf")
 async def ingest_pdf(
-    index_name: str = Form(...),
+    namespace: str = Form(...),
     file: UploadFile = File(...)
 ):
     if not file.filename.lower().endswith('.pdf'):
@@ -47,29 +48,8 @@ async def ingest_pdf(
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=250)
         chunks = text_splitter.split_text(full_text)
         
-        # Check if index exists, create if not
-        existing_indexes = [index_info["name"] for index_info in pc.list_indexes()]
-        
-        if index_name not in existing_indexes:
-            print(f"Creating new index: {index_name} with integrated embeddings")
-            try:
-                pc.create_index_for_model(
-                    name=index_name,
-                    cloud="aws",
-                    region="us-east-1",
-                    embed={
-                        "model": "llama-text-embed-v2",
-                        "field_map": {"text": "chunk_text"}
-                    }
-                )
-                # Wait for index to be ready
-                while not pc.describe_index(index_name).status["ready"]:
-                    time.sleep(1)
-            except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Error creating Pinecone index: {str(e)}")
-        
-        # Upsert Data to Pinecone
-        index = pc.Index(index_name)
+        # Get the index
+        index = pc.Index(PINECONE_INDEX_NAME)
         
         records = []
         base_id = str(uuid.uuid4())
@@ -83,11 +63,12 @@ async def ingest_pdf(
         batch_size = 96
         for i in range(0, len(records), batch_size):
             batch = records[i:i + batch_size]
-            index.upsert_records(records=batch, namespace="__default__")
+            index.upsert_records(records=batch, namespace=namespace)
             
         return {
             "message": "Ingestion successful",
-            "index_name": index_name,
+            "index_name": PINECONE_INDEX_NAME,
+            "namespace": namespace,
             "processed_chunks": len(records),
             "filename": file.filename
         }
@@ -100,23 +81,18 @@ async def ingest_pdf(
 
 
 class RetrievalRequest(BaseModel):
-    index_name: str
+    namespace: str
     query: str
     top_k: int = 4
 
 @app.post("/retrieve")
 async def retrieve(request: RetrievalRequest):
     try:
-        # Verify the index exists
-        existing_indexes = [index_info["name"] for index_info in pc.list_indexes()]
-        if request.index_name not in existing_indexes:
-            raise HTTPException(status_code=404, detail=f"Index '{request.index_name}' not found.")
-            
-        index = pc.Index(request.index_name)
+        index = pc.Index(PINECONE_INDEX_NAME)
         
         # Integrated Inference API Search
         results = index.search(
-            namespace="__default__", 
+            namespace=request.namespace, 
             query={
                 "inputs": {"text": request.query}, 
                 "top_k": request.top_k
@@ -125,7 +101,8 @@ async def retrieve(request: RetrievalRequest):
         
         return {
             "query": request.query,
-            "index_name": request.index_name,
+            "index_name": PINECONE_INDEX_NAME,
+            "namespace": request.namespace,
             "results": results.get("result", results)  # Normalizing the output based on Pinecone dict response
         }
         
@@ -138,4 +115,3 @@ if __name__ == "__main__":
     # Render sets the PORT environment variable dynamically
     port = int(os.environ.get("PORT", 8001))
     uvicorn.run("app:app", host="0.0.0.0", port=port)
-
