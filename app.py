@@ -85,7 +85,7 @@ class RetrievalRequest(BaseModel):
     query: str
     top_k: int = 4
 
-@app.post("/retrieve")
+@app.get("/retrieve")
 async def retrieve(request: RetrievalRequest):
     try:
         index = pc.Index(PINECONE_INDEX_NAME)
