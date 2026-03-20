@@ -86,23 +86,24 @@ class RetrievalRequest(BaseModel):
     top_k: int = 4
 
 @app.get("/retrieve")
-async def retrieve(request: RetrievalRequest):
+async def retrieve(namespace: str, query: str, top_k: int = 4):
+#async def retrieve(request: RetrievalRequest):
     try:
         index = pc.Index(PINECONE_INDEX_NAME)
         
         # Integrated Inference API Search
         results = index.search(
-            namespace=request.namespace, 
+            namespace=namespace, 
             query={
-                "inputs": {"text": request.query}, 
-                "top_k": request.top_k
+                "inputs": {"text": query}, 
+                "top_k": top_k
             }
         )
         
         return {
-            "query": request.query,
+            "query": query,
             "index_name": PINECONE_INDEX_NAME,
-            "namespace": request.namespace,
+            "namespace": namespace,
             "results": results.get("result", results)  # Normalizing the output based on Pinecone dict response
         }
         
