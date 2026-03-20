@@ -101,10 +101,10 @@ async def retrieve(namespace: str, query: str, top_k: int = 4):
         index = pc.Index(host=os.getenv("PINECONE_HOST"))
 
         results = index.search(
-            namespace="__default__", 
+            namespace=namespace, 
             query={
-                "inputs": {"text": "What is supervised machine learning?"}, 
-                "top_k": 1
+                "inputs": {"text": query}, 
+                "top_k": top_k
             },)
         
         return {
