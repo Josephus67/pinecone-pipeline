@@ -87,24 +87,31 @@ class RetrievalRequest(BaseModel):
 
 @app.get("/retrieve")
 async def retrieve(namespace: str, query: str, top_k: int = 4):
-#async def retrieve(request: RetrievalRequest):
     try:
-        index = pc.Index(PINECONE_INDEX_NAME)
+        # index = pc.Index(PINECONE_INDEX_NAME)
         
-        # Integrated Inference API Search
+        # # Integrated Inference API Search
+        # results = index.search(
+        #     namespace=namespace, 
+        #     query={
+        #         "inputs": {"text": query}, 
+        #         "top_k": top_k
+        #     }
+        # )
+        index = pc.Index(host=os.getenv("PINECONE_HOST"))
+
         results = index.search(
-            namespace=namespace, 
+            namespace="__default__", 
             query={
-                "inputs": {"text": query}, 
-                "top_k": top_k
-            }
-        )
+                "inputs": {"text": "What is supervised machine learning?"}, 
+                "top_k": 1
+            },)
         
         return {
             "query": query,
             "index_name": PINECONE_INDEX_NAME,
             "namespace": namespace,
-            "results": results.get("result", results)  # Normalizing the output based on Pinecone dict response
+            "results": results  # Normalizing the output based on Pinecone dict response
         }
         
     except Exception as e:
