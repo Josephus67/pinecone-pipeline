@@ -88,16 +88,6 @@ class RetrievalRequest(BaseModel):
 @app.get("/retrieve")
 async def retrieve(namespace: str, query: str, top_k: int = 4):
     try:
-        # index = pc.Index(PINECONE_INDEX_NAME)
-        
-        # # Integrated Inference API Search
-        # results = index.search(
-        #     namespace=namespace, 
-        #     query={
-        #         "inputs": {"text": query}, 
-        #         "top_k": top_k
-        #     }
-        # )
         index = pc.Index(host=os.getenv("PINECONE_HOST"))
 
         results = index.search(
@@ -105,13 +95,16 @@ async def retrieve(namespace: str, query: str, top_k: int = 4):
             query={
                 "inputs": {"text": query}, 
                 "top_k": top_k
-            },)
+            }
+        )
         
         return {
             "query": query,
             "index_name": PINECONE_INDEX_NAME,
             "namespace": namespace,
-            "results": results  # Normalizing the output based on Pinecone dict response
+            # Pinecone returns a custom object that FastAPI struggles to serialize to JSON by default.
+            # Converting it securely to a dictionary prevents the 500 Internal Server Error.
+            "results": results.to_dict() if hasattr(results, "to_dict") else dict(results)
         }
         
     except Exception as e:
