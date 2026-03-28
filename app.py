@@ -106,10 +106,14 @@ async def retrieve(namespace: str, query: str, top_k: int = 4):
             # Converting it securely to a dictionary prevents the 500 Internal Server Error.
             "results": results.to_dict() if hasattr(results, "to_dict") else dict(results)
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.get('/')
+def health():
+    return {"Health status" : "pinecone is healthy"}
 
 if __name__ == "__main__":
     import uvicorn
