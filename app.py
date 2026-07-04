@@ -41,9 +41,9 @@ def get_pinecone_client():
 
 # CORS
 origins = [
-    "http://localhost:3000",      # Common React/Next.js local port
-    "http://localhost:5173",      # Common Vite/Vue local port
-    "https://ai-tutor-admin-1.onrender.com/", # Your production frontend
+    "http://localhost:3000",      
+    "http://localhost:5173",     
+    "https://ai-tutor-admin-1.onrender.com", # Your production frontend
 ]
 
 # 2. Add the CORS middleware to your FastAPI app
