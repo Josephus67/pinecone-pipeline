@@ -190,6 +190,7 @@ def split_with_overlap(text: str, chunk_size: int, overlap: int) -> list[str]:
 @app.post("/ingest-pdf")
 async def ingest_pdf(
     namespace:           str        = Form(...),
+    course_title:        str        = Form(...),   # for display/logging only
     file:                UploadFile = File(...),
     clear_existing:      bool       = Form(False),    # wipe old vectors for this namespace first
 ):
@@ -258,6 +259,7 @@ async def ingest_pdf(
         return {
             "message":          "Ingestion successful",
             "namespace":        namespace,
+            "course_title":     course_title,
             "filename":         file.filename,
             "pages_processed":  len(pages),
             "sections_found":   sections_found,
