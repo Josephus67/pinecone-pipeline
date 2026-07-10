@@ -1,13 +1,20 @@
-langchain-pinecone
-langchain-huggingface
-langchain-community
-langchain-text-splitters
-python-dotenv
-pinecone
-pinecone
-sentence-transformers
-numpy<2
-pypdf
+# Core
 fastapi
 uvicorn
 python-multipart
+python-dotenv
+
+# Pinecone
+pinecone
+
+# PDF parsing
+pypdf
+
+# HTTP (for health checks and re-ingestion script)
+requests
+
+# Note: langchain-text-splitters is no longer needed.
+# Education-aware chunking is now handled natively in app.py.
+# langchain-community, langchain-pinecone, langchain-huggingface,
+# sentence-transformers, and numpy are all removed — they were
+# only needed for the old RecursiveCharacterTextSplitter approach.
