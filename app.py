@@ -15,7 +15,7 @@ app = FastAPI(title="Pinecone Integrated API — DISAL AI Tutor")
 
 PINECONE_API_KEY  = os.getenv("PINECONE_API_KEY")
 PINECONE_HOST     = os.getenv("PINECONE_HOST")
-PINECONE_INDEX    = "integrated-disal"
+PINECONE_INDEX    = "disal"
 
 if not PINECONE_API_KEY:
     raise ValueError("PINECONE_API_KEY not set in environment.")
