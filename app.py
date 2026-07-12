@@ -8,6 +8,7 @@ import time
 import uuid
 from typing import Optional
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
@@ -21,6 +22,23 @@ if not PINECONE_API_KEY:
     raise ValueError("PINECONE_API_KEY not set in environment.")
 
 pc = Pinecone(api_key=PINECONE_API_KEY)
+
+# CORS
+origins = [
+    "http://localhost:3000",      
+    "http://localhost:5173",     
+    "https://ai-tutor-admin-1.onrender.com", # Your production frontend
+]
+
+# 2. Add the CORS middleware to your FastAPI app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,           # Allows specific origins
+    allow_credentials=True,          # Allows cookies/auth headers
+    allow_methods=["*"],             # Allows all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],             # Allows all custom headers
+)
+
 
 
 # ─────────────────────────────────────────────────────────────────────────────
