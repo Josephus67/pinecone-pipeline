@@ -1,5 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
-from pydantic import BaseModel
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from pypdf import PdfReader
 from pinecone import Pinecone
 import os
@@ -140,7 +139,7 @@ def education_aware_chunk(
         for j, tc in enumerate(teaching_chunks):
             chunks.append({
                 "id":              f"{base_id}_teach_{chunk_counter}",
-                "chunk_text":      tc,
+                "text":      tc,
                 "chunk_type":      "teaching",
                 "section_title":   section_title,
                 "section_index":   section_idx,
@@ -154,7 +153,7 @@ def education_aware_chunk(
         for j, qc in enumerate(qa_chunks):
             chunks.append({
                 "id":              f"{base_id}_qa_{chunk_counter}",
-                "chunk_text":      qc,
+                "text":      qc,
                 "chunk_type":      "qa",
                 "section_title":   section_title,
                 "section_index":   section_idx,
@@ -248,7 +247,7 @@ async def ingest_pdf(
         records = [
             {
                 "id":              chunk["id"],
-                "chunk_text":      chunk["chunk_text"],
+                "text":      chunk["text"],
                 "chunk_type":      chunk["chunk_type"],
                 "section_title":   chunk["section_title"],
                 "section_index":   chunk["section_index"],
@@ -333,7 +332,7 @@ async def retrieve(
         # Return structured hit list for easier consumption by the backend
         clean_hits = [
             {
-                "chunk_text":    hit.get("fields", {}).get("chunk_text", ""),
+                "text":          hit.get("fields", {}).get("text", ""),
                 "chunk_type":    hit.get("fields", {}).get("chunk_type", ""),
                 "section_title": hit.get("fields", {}).get("section_title", ""),
                 "score":         round(hit.get("_score", 0), 4),
